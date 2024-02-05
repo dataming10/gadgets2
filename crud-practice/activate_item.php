@@ -1,20 +1,35 @@
 <?php
 include('includes/config.php');
 
-if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['id'])) {
-    $id = intval($_GET['id']);  // Ensure id is an integer
+class ItemActivator {
+    private $conn;
 
-    // Use prepared statement to prevent SQL injection
-    $activate_item_sql = $conn->prepare("UPDATE items SET status = 1 WHERE id = ?");
-    $activate_item_sql->bind_param("i", $id);
-
-    if ($activate_item_sql->execute()) {
-        $success = "Item activated successfully.";
-    } else {
-        $error = "Error activating item: " . $conn->error;
+    public function __construct($conn) {
+        $this->conn = $conn;
     }
 
-    $activate_item_sql->close();
+    public function activateItem($id) {
+        $id = intval($id); // Ensure id is an integer
+
+        // Use prepared statement to prevent SQL injection
+        $activateItemSql = $this->conn->prepare("UPDATE items SET status = 1 WHERE id = ?");
+        $activateItemSql->bind_param("i", $id);
+
+        if ($activateItemSql->execute()) {
+            $success = "Item activated successfully.";
+        } else {
+            $error = "Error activating item: " . $this->conn->error;
+        }
+
+        $activateItemSql->close();
+    }
+}
+
+$itemActivator = new ItemActivator($conn);
+
+if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['id'])) {
+    $id = $_GET['id'];
+    $itemActivator->activateItem($id);
 }
 
 $conn->close();
